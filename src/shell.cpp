@@ -1,12 +1,10 @@
 #include<iostream>
+#include<unistd.h>
+#include"job.h"
 #include"parse.h"
 using namespace std;
 
-static vector<Job> jobs;
-
-int execute(Job& job);
-int execute_singlejob(Job& job);
-int execute_pipe(Job& job);
+vector<Job> jobs;
 
 int main()
 {
@@ -27,7 +25,7 @@ int main()
 		vec.clear();
 		if(parse_jobs(s, vec))
 		{
-			/*for(int i = 0; i < vec.size(); i++)
+			for(int i = 0; i < vec.size(); i++)
 			{
 				for(int j = 0; j < vec[i].commands.size(); j++)
 				{
@@ -43,28 +41,10 @@ int main()
 				}
 				cout<<"new job"<<endl<<endl<<endl;
 			}
-			cout<<endl;*/
+			cout<<endl;
 		}
 		else
 			cerr<<"wrong cmd"<<endl;
 	}
 	return 0;
-}
-
-int execute(Job& job)
-{
-	if(job.commands.size() == 1)
-		return execute_singlejob(job);
-	else
-		return execute_pipe(job);
-}
-
-int execute_singlejob(Job& job)
-{
-	
-}
-
-int execute_pipe(Job& job)
-{
-	
 }

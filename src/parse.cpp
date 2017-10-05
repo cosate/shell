@@ -1,6 +1,8 @@
 #include<iostream>
-#include"parse.h"
 #include<cstring>
+#include<unistd.h>
+#include<stdio.h>
+#include"parse.h"
 using namespace std;
 
 void pass_whitespace(char*& cmd)
