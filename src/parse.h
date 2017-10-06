@@ -4,10 +4,13 @@
 #include<string>
 #include"job.h"
 
-void pass_whitespace(char*&);
-int parse_jobs(string&, vector<Job>&);
-int parse_job(char*&, vector<Job>&);
-int parse_command(char*&, Job&);
-int execute(Job&);
+namespace gao
+{
+	void pass_whitespace(char*&);
+	int parse_jobs(string&, vector<Job>&);
+	int parse_job(char*&, vector<Job>&);
+	int parse_command(char*&, Job&);
+	int execute(Job&);
+}
 
 #endif

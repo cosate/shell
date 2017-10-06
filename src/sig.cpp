@@ -8,68 +8,67 @@
 #include"sig.h"
 #include"job.h"
 
-extern vector<Job> jobs;
-
-pid_t get_front_job_pid()
+namespace gao
 {
-	for(auto it = jobs.begin(); it != jobs.end(); it++)
+	extern vector<Job> jobs;
+	
+	signal_handler signal_set_handler(int sig, signal_handler handler)
 	{
-		if(it->workmode == FRONTGROUND)
-			return it->pgid;
-	}
-	return 0;
-}
-
-signal_handler signal_set_handler(int sig, signal_handler handler)
-{
-	sigaction act, oldact;
-	sigemptyset(&act.sa_mask);
-	act.sa_flags = SA_RESTART;
-	act.sa_handler = handler;
-	if(sigaction(sig, &act, &oldact) == -1)
-	{
-		cerr<<"signal handler error"<<endl;
-		exit(1);
-	}
-	return oldact.sa_handler;
-}
-
-void sigchld_handler(int sig)
-{
-	int status, saved_errno;
-	pid_t pid;
-	saved_errno = errno;
-	while((pid = waitpid(-1, &status, WNOHANG)) > 0)
-	{
-		if(WIFEXITED(status))
+		sigaction act, oldact;
+		sigemptyset(&act.sa_mask);
+		act.sa_flags = SA_RESTART;
+		act.sa_handler = handler;
+		if(sigaction(sig, &act, &oldact) == -1)
 		{
+			cerr<<"signal handler error"<<endl;
+			exit(1);
+		}
+		return oldact.sa_handler;
+	}
 
+	void sigchld_handler(int sig)
+	{
+		int status, saved_errno;
+		pid_t pid;
+		saved_errno = errno;
+		while((pid = waitpid(-1, &status, WNOHANG)) > 0)
+		{
+			if(WIFSIGNALED(status))
+			{
+				cerr<<
+			}
 		}
 	}
-}
 
-void sigint_handler(int sig)
-{
-	pid_t currentjob = get_front_job_pid();
-	if(currentjob != 0)
-		kill(-currentjob.pgid, SIGTINT);
-}
+	void sigint_handler(int sig)
+	{
+		pid_t currentjob = get_front_job_pid();
+		if(currentjob != 0)
+			kill(-currentjob.pgid, SIGTINT);
+	}
 
-void sigquit_handler(int sig)
-{
-	for(auto it = jobs.begin(); it != jobs.end(); it++)
-		kill(-it->pgid, SIGTERM);
-	exit(1);
-}
+	void sigquit_handler(int sig)
+	{
+		for(auto it = jobs.begin(); it != jobs.end(); it++)
+			kill(-it->pgid, SIGTERM);
+		exit(1);
+	}
 
-void sigtstp_handler(int sig)
-{
-	pid_t currentjob = get_front_job_pid();
-	if(currentjob != 0)
-		kill(-currentjob.pgid, SIGTSTP);
-}
+	void sigtstp_handler(int sig)
+	{
+		int currentjob = get_front_job_pid();
+		if(currentjob != -1)
+		{
+			jobs[currentjob].state = JobState::STOPPED;
+			kill(-jobs[currentjob].pgid, SIGTSTP);
+		}
+	}
 
-void signal_mask(int how, int sig)
-{
-
+	void signal_mask(int how, int sig)
+	{
+		sigset_t mask;
+		sigemptyset(&mask);
+		sigaddset(&mask, sig);
+		sigprocmask(how, &mask, NULL);
+	}
 }

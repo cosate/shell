@@ -1,9 +1,9 @@
 #include<iostream>
 #include<cstring>
-#include<unistd.h>
-#include<stdio.h>
 #include"parse.h"
+#include"job.h"
 using namespace std;
+using namespace gao;
 
 void pass_whitespace(char*& cmd)
 {
@@ -63,7 +63,7 @@ int parse_job(char*& cmdline, vector<Job>& jobs)
 		{
 			cout<<"back"<<endl;
 			job.commands.back().argv.pop_back();
-			job.workmode = BACKGROUND;
+			job.state = JobState::BACKGROUND;
 		}
 		jobs.push_back(job);
 	}

@@ -1,10 +1,12 @@
 #include<iostream>
+#include<string>
 #include<unistd.h>
 #include"job.h"
 #include"parse.h"
 using namespace std;
+using namespace gao;
 
-vector<Job> jobs;
+static vector<Job> jobs;
 
 int main()
 {
