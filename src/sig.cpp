@@ -36,7 +36,16 @@ signal_handler signal_set_handler(int sig, signal_handler handler)
 
 void sigchld_handler(int sig)
 {
-	
+	int status, saved_errno;
+	pid_t pid;
+	saved_errno = errno;
+	while((pid = waitpid(-1, &status, WNOHANG)) > 0)
+	{
+		if(WIFEXITED(status))
+		{
+
+		}
+	}
 }
 
 void sigint_handler(int sig)
