@@ -1,10 +1,12 @@
-shell : job.o parse.o shell.o
-	g++ -std=c++11 -o $@ job.o parse.o shell.o
-job.o : job.cpp job.h
-	g++ -std=c++11 -o job.o job.cpp job.h
-parse.o : parse.cpp parse.h job.h
-	g++ -std=c++11 -o parse.o parse.cpp parse.h job.h
-shell.o : shell.cpp parse.h job.h
-	g++ -std=c++11 -o shell.o shell.cpp parse.h job.h
+shell : shell.o parse.o job.o sig.o
+	g++ -std=c++11 -o $@ shell.o parse.o sig.o
+shell.o :
+	g++ -std=c++11 -c shell.cpp parse.h job.h
+parse.o :
+	g++ -std=c++11 -c parse.cpp parse.h job.h
+job.o :
+	g++ -std=c++11 -c job.cpp job.h
+sig.o:
+	g++ -std=c++11 -c sig.cpp sig.h
 clean :
-	rm shell.o parse.o shell
+	rm shell.o parse.o job.o shell

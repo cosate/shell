@@ -28,21 +28,32 @@ namespace gao
 
 	void sigchld_handler(int sig)
 	{
-		int status, saved_errno;
+		int saved_errno = errno;
+		int status;
 		pid_t pid;
-		saved_errno = errno;
 		while((pid = waitpid(-1, &status, WNOHANG)) > 0)
 		{
 			if(WIFSIGNALED(status))
 			{
-				cerr<<
+				cerr<<"Job "<<pid2jobid(pid)<<" terminated by signal"<<strsignal(WTERMSIG(status))<<endl;
+				kill(-pid2jobid(pid), SIGINT);
+				jobs.erase(jobs.begin() + pid2index(pid));
+			}
+			else if(WIFSTOPPED(status))
+			{
+				cout<<"Job "<<pid2jobid(pid)<<" stopped by signal"<<strsignal(WSTOPSIG(status))<<endl;
+				*(jobs.begin() + pid2index(pid)).state = STOPPED;
 			}
 		}
+
+		if(pid == -1 && errno == ECHILD)
+			cerr<<"waitpid error"<<endl;
+		errno = saved_errno;
 	}
 
 	void sigint_handler(int sig)
 	{
-		pid_t currentjob = get_front_job_pid();
+		pid_t currentjob = get_front_job();
 		if(currentjob != 0)
 			kill(-currentjob.pgid, SIGTINT);
 	}
@@ -56,12 +67,9 @@ namespace gao
 
 	void sigtstp_handler(int sig)
 	{
-		int currentjob = get_front_job_pid();
+		int currentjob = get_front_job();
 		if(currentjob != -1)
-		{
-			jobs[currentjob].state = JobState::STOPPED;
 			kill(-jobs[currentjob].pgid, SIGTSTP);
-		}
 	}
 
 	void signal_mask(int how, int sig)

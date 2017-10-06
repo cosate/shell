@@ -50,6 +50,8 @@ namespace gao
 	int get_front_job();
 
 	int pid2jobid(pid_t pid);
+
+	int pid2index(pid_t pid);
 }
 
 #endif

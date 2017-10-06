@@ -1,8 +1,12 @@
 #include<iostream>
 #include<string>
 #include<unistd.h>
+#include<signal.h>
+#include<sys/types.h>
+#include<stdlib.h>
 #include"job.h"
 #include"parse.h"
+#include"sig.h"
 using namespace std;
 using namespace gao;
 
@@ -10,7 +14,7 @@ static vector<Job> jobs;
 
 int main()
 {
-	//signal(SIGINT, SIG_DFL);
+	signal_set_handler(SIGINT, sigint_handler);
 	char host[10];
 	gethostname(host, 10);
 	string s;
