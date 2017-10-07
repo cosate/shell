@@ -8,9 +8,6 @@ using namespace std;
 
 namespace gao
 {
-	const int OUTAPPEND = 3;
-	const int OUTREDIRECT = 1;
-
 	static int next_jobid = 1;
 
 	enum class JobState {UNDEFINED = 0, FRONTGROUND, BACKGROUND, STOPPED};
@@ -49,9 +46,8 @@ namespace gao
 
 	int get_front_job();
 
-	int pid2jobid(pid_t pid);
+	int pid2jobid(pid_t);
 
-	int pid2index(pid_t pid);
+	int pid2index(pid_t);
 }
-
 #endif

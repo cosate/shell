@@ -6,6 +6,9 @@ using namespace std;
 
 namespace gao
 {
+	const int OUTAPPEND = 3;
+	const int OUTREDIRECT = 1;
+	
 	void pass_whitespace(char*& cmd)
 	{
 		while(*cmd != '\0' && *cmd == ' ')

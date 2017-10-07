@@ -2,10 +2,10 @@
 #include<vector>
 #include"job.h"
 
+extern vector<gao::Job> jobs;
+
 namespace gao
 {
-	extern vector<Job> jobs;
-
 	int get_front_job()
 	{
 		int res = 0;

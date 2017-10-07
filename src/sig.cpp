@@ -1,20 +1,23 @@
+#include<iostream>
 #include<signal.h>
 #include<sys/types.h>
 #include<sys/wait.h>
 #include<errno.h>
 #include<stdlib.h>
+#include<cstring>
 #include<errno.h>
 #include<vector>
 #include"sig.h"
 #include"job.h"
+using namespace std;
+
+extern vector<gao::Job> jobs;
 
 namespace gao
 {
-	extern vector<Job> jobs;
-	
 	signal_handler signal_set_handler(int sig, signal_handler handler)
 	{
-		sigaction act, oldact;
+		struct sigaction act, oldact;
 		sigemptyset(&act.sa_mask);
 		act.sa_flags = SA_RESTART;
 		act.sa_handler = handler;
@@ -42,7 +45,7 @@ namespace gao
 			else if(WIFSTOPPED(status))
 			{
 				cout<<"Job "<<pid2jobid(pid)<<" stopped by signal"<<strsignal(WSTOPSIG(status))<<endl;
-				*(jobs.begin() + pid2index(pid)).state = STOPPED;
+				(*(jobs.begin() + pid2index(pid))).state = JobState::STOPPED;
 			}
 		}
 
@@ -53,9 +56,9 @@ namespace gao
 
 	void sigint_handler(int sig)
 	{
-		pid_t currentjob = get_front_job();
-		if(currentjob != 0)
-			kill(-currentjob.pgid, SIGTINT);
+		int currentjob = get_front_job();
+		if(currentjob != -1)
+			kill(-(jobs[currentjob].pgid), SIGINT);
 	}
 
 	void sigquit_handler(int sig)

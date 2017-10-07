@@ -10,11 +10,15 @@
 using namespace std;
 using namespace gao;
 
-static vector<Job> jobs;
+vector<Job> jobs;
 
 int main()
 {
 	signal_set_handler(SIGINT, sigint_handler);
+	signal_set_handler(SIGCHLD, sigchld_handler);
+	signal_set_handler(SIGQUIT, sigquit_handler);
+	signal_set_handler(SIGTSTP, sigtstp_handler);
+
 	char host[10];
 	gethostname(host, 10);
 	string s;
@@ -25,9 +29,6 @@ int main()
 		getline(cin, s);
 		if(s == "quit")
 			break;
-		/*if(s == "")
-			cout<<"ksdlfk"<<endl;
-		cout<<s<<endl;*/
 		vec.clear();
 		if(parse_jobs(s, vec))
 		{

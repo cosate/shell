@@ -1,9 +1,9 @@
-#ifndef _SIGNAL_H
-#define _SIGNAL_H
+#ifndef _SIG_H
+#define _SIG_H
 
 namespace gao
 {
-	typedef void (*signal_handler)(int)
+	typedef void (*signal_handler)(int);
 
 	signal_handler signal_set_handler(int, signal_handler);
 
