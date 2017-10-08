@@ -9,6 +9,7 @@ using namespace std;
 namespace gao
 {
 	enum class JobState {UNDEFINED = 0, FRONTGROUND, BACKGROUND, STOPPED};
+	enum class OutFlag {APPEND = 0, REPLACE};
 
 	class Command
 	{
@@ -16,6 +17,7 @@ namespace gao
 		vector<char*> argv;
 		int infd;
 		int outfd;
+		OutFlag outflag;
 		char* infile;
 		char* outfile;
 		Command()

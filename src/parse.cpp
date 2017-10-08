@@ -6,8 +6,6 @@ using namespace std;
 
 namespace gao
 {
-	const int OUTAPPEND = 3;
-	const int OUTREDIRECT = 1;
 	static int next_jobid = 1;
 	
 	void pass_whitespace(char*& cmd)
@@ -96,7 +94,7 @@ namespace gao
 			}
 			else if(*cmdline == '>')
 			{
-				if(cmd.outfd != 0)
+				if(cmd.outfile != NULL)
 				{
 					cerr<<"Has redirected out before "<<cmd.outfile<<"  "<<cmdline<<endl;
 					return 0;
@@ -111,11 +109,11 @@ namespace gao
 					cmdline++;
 				if(*cmdline == '>')
 				{
-					cmd.outfd = OUTAPPEND;
+					cmd.outflag = APPEND;
 					cmdline++;
 				}
 				else
-					cmd.outfd = OUTREDIRECT;
+					cmd.outflag = REPLACE;
 				pass_whitespace(cmdline);
 				cmd.outfile = cmdline;
 				while(*cmdline != '\0' && *cmdline != ';' && *cmdline != '|' && *cmdline != ' ' && *cmdline != '>' && *cmdline != '<')
@@ -222,11 +220,11 @@ namespace gao
 							cmdline++;
 							if(*cmdline == '>')
 							{
-								cmd.outfd = OUTAPPEND;
+								cmd.outflag = APPEND;
 								cmdline++;
 							}
 							else
-								cmd.outfd = OUTREDIRECT;
+								cmd.outflag = REPLACE;
 							pass_whitespace(cmdline);
 							cmd.outfile = cmdline;
 							while(*cmdline != '\0' && *cmdline != ';' && *cmdline != '|' && *cmdline != ' ' && *cmdline != '>' && *cmdline != '<')

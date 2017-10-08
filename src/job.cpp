@@ -66,7 +66,12 @@ namespace gao
 			if(job.commands[i].infile != NULL)
 				printf("<%s ", job.commands[i].infile);
 			if(job.commands[i].outfile != NULL)
-				printf(">>%s ", job.commands[i].outfile);
+			{
+				if(job.commands[i].outflag == OutFlag::APPEND)
+					printf(">>%s ", job.commands[i].outfile);
+				else
+					printf(">%s", job.commands[i].outfile);
+			}
 			printf("\n");
 		}
 	}

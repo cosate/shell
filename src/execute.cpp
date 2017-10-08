@@ -67,7 +67,8 @@ namespace gao
 			wait_front_job(pid);
 		else
 		{
-			cout<<"["<<pid2jobid(pid)<<"] ("<<pid<<") "<<job.commands[0]<<endl;
+			printf("[%d] (%d)", pid2jobid(pid), pid);
+			print_job(job);
 			signal_mask(SIG_UNBLOCK, SIGCHLD);
 		}
 	}
@@ -85,7 +86,7 @@ namespace gao
 		}
 		else if(pid == 0)
 		{
-
+			
 		}
 		else
 		{
@@ -112,7 +113,9 @@ namespace gao
 			redirect(job);
 			list_jobs();
 			dup2(in, STDIN_FILENO);
+			close(in);
 			dup2(out, STDOUT_FILENO);
+			close(out);
 			return 1;
 		}
 		else if(!strcmp(job.commands[0], "bg") || !strcmp(job.commands[0], "fg"))
