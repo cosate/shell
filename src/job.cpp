@@ -1,5 +1,6 @@
 #include<sys/types.h>
 #include<vector>
+#include<stdio.h>
 #include"job.h"
 
 extern vector<gao::Job> jobs;
@@ -17,7 +18,7 @@ namespace gao
 		return -1;
 	}
 
-	int pid2jobid(pid_t pid)
+	int pgid2jobid(pid_t pid)
 	{
 		for(int res = 0; res < jobs.size(); res++)
 		{
@@ -27,7 +28,7 @@ namespace gao
 		return -1;
 	}
 
-	int pid2index(pid_t pid)
+	int pgid2index(pid_t pid)
 	{
 		for(int i = 0; i < jobs.size(); i++)
 		{
@@ -35,5 +36,38 @@ namespace gao
 				return i;
 		}
 		return -1;
+	}
+
+	void list_jobs()
+	{
+		for(auto it = jobs.begin(); it != jobs.end(); it++)
+		{
+			printf("[%d] (%d) ", it->jobid, it->pgid);
+			if(it->state == JobState::FRONTGROUND)
+				printf("Frontground");
+			else if(it->state == JobState::BACKGROUND)
+				printf("Background ");
+			else if(it->state == JobState::STOPPED)
+				printf("Stopped");
+			else
+				printf("Undefined");
+			print_job(*it);
+		}
+	}
+
+	void print_job(Job& job)
+	{
+		for(int i = 0; i < job.commands.size(); i++)
+		{
+			for(int j = 0; j < job.commands[i].argv.size(); j++)
+			{
+				printf("%s ", job.commands[i].argv[j]);
+			}
+			if(job.commands[i].infile != NULL)
+				printf("<%s ", job.commands[i].infile);
+			if(job.commands[i].outfile != NULL)
+				printf(">>%s ", job.commands[i].outfile);
+			printf("\n");
+		}
 	}
 }

@@ -6,6 +6,7 @@
 #include<stdlib.h>
 #include<cstring>
 #include<errno.h>
+#include<unistd.h>
 #include<vector>
 #include"sig.h"
 #include"job.h"
@@ -36,21 +37,26 @@ namespace gao
 		pid_t pid;
 		while((pid = waitpid(-1, &status, WNOHANG)) > 0)
 		{
+			pid_t pgid = getpgid(pid);
 			if(WIFSIGNALED(status))
 			{
-				cerr<<"Job "<<pid2jobid(pid)<<" terminated by signal"<<strsignal(WTERMSIG(status))<<endl;
-				kill(-pid2jobid(pid), SIGINT);
-				jobs.erase(jobs.begin() + pid2index(pid));
+				cerr<<"Job "<<pgid2jobid(pid)<<" terminated by signal"<<strsignal(WTERMSIG(status))<<endl;
+				kill(-pgid, SIGINT);
+				if(pgid2index(pgid) != -1)
+					jobs.erase(jobs.begin() + pgid2index(pgid));
 			}
 			else if(WIFSTOPPED(status))
 			{
-				cout<<"Job "<<pid2jobid(pid)<<" stopped by signal"<<strsignal(WSTOPSIG(status))<<endl;
-				(*(jobs.begin() + pid2index(pid))).state = JobState::STOPPED;
+				cout<<"Job "<<pgid2jobid(pgid)<<" stopped by signal"<<strsignal(WSTOPSIG(status))<<endl;
+				(*(jobs.begin() + pgid2index(pgid))).state = JobState::STOPPED;
 			}
 		}
 
 		if(pid == -1 && errno == ECHILD)
+		{
 			cerr<<"waitpid error"<<endl;
+			exit(1);
+		}
 		errno = saved_errno;
 	}
 

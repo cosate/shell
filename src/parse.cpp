@@ -8,6 +8,7 @@ namespace gao
 {
 	const int OUTAPPEND = 3;
 	const int OUTREDIRECT = 1;
+	static int next_jobid = 1;
 	
 	void pass_whitespace(char*& cmd)
 	{
@@ -69,6 +70,9 @@ namespace gao
 				job.commands.back().argv.pop_back();
 				job.state = JobState::BACKGROUND;
 			}
+			else
+				job.state = JobState::FRONTGROUND;
+			job.jobid = next_jobid++;
 			jobs.push_back(job);
 		}
 		return 1;
@@ -92,7 +96,7 @@ namespace gao
 			}
 			else if(*cmdline == '>')
 			{
-				if(cmd.out != 0)
+				if(cmd.outfd != 0)
 				{
 					cerr<<"Has redirected out before "<<cmd.outfile<<"  "<<cmdline<<endl;
 					return 0;
@@ -107,11 +111,11 @@ namespace gao
 					cmdline++;
 				if(*cmdline == '>')
 				{
-					cmd.out = OUTAPPEND;
+					cmd.outfd = OUTAPPEND;
 					cmdline++;
 				}
 				else
-					cmd.out = OUTREDIRECT;
+					cmd.outfd = OUTREDIRECT;
 				pass_whitespace(cmdline);
 				cmd.outfile = cmdline;
 				while(*cmdline != '\0' && *cmdline != ';' && *cmdline != '|' && *cmdline != ' ' && *cmdline != '>' && *cmdline != '<')
@@ -218,11 +222,11 @@ namespace gao
 							cmdline++;
 							if(*cmdline == '>')
 							{
-								cmd.out = OUTAPPEND;
+								cmd.outfd = OUTAPPEND;
 								cmdline++;
 							}
 							else
-								cmd.out = OUTREDIRECT;
+								cmd.outfd = OUTREDIRECT;
 							pass_whitespace(cmdline);
 							cmd.outfile = cmdline;
 							while(*cmdline != '\0' && *cmdline != ';' && *cmdline != '|' && *cmdline != ' ' && *cmdline != '>' && *cmdline != '<')

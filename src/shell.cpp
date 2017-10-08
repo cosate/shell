@@ -7,6 +7,7 @@
 #include"job.h"
 #include"parse.h"
 #include"sig.h"
+//#include"execute.h"
 using namespace std;
 using namespace gao;
 
@@ -34,18 +35,7 @@ int main()
 		{
 			for(int i = 0; i < vec.size(); i++)
 			{
-				for(int j = 0; j < vec[i].commands.size(); j++)
-				{
-					for(int k = 0; k < vec[i].commands[j].argv.size(); k++)
-					{
-						cout<<vec[i].commands[j].argv[k]<<"-------";
-					}
-					if(vec[i].commands[j].outfile != NULL)
-						cout<<"redirected to "<<vec[i].commands[j].outfile;
-					if(vec[i].commands[j].infile != NULL)
-						cout<<"redirected to "<<vec[i].commands[j].infile;
-					cout<<endl;
-				}
+				print_job(vec[i]);
 				cout<<"new job"<<endl<<endl<<endl;
 			}
 			cout<<endl;

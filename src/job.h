@@ -8,22 +8,20 @@ using namespace std;
 
 namespace gao
 {
-	static int next_jobid = 1;
-
 	enum class JobState {UNDEFINED = 0, FRONTGROUND, BACKGROUND, STOPPED};
 
 	class Command
 	{
 	public:
 		vector<char*> argv;
-		int in;
-		int out;
+		int infd;
+		int outfd;
 		char* infile;
 		char* outfile;
 		Command()
 		{
-			in = 0;
-			out = 0;
+			infd = 0;
+			outfd = 0;
 			infile = NULL;
 			outfile = NULL;
 		}
@@ -32,7 +30,7 @@ namespace gao
 	class Job
 	{
 	public:
-		size_t jobid;
+		int jobid;
 		pid_t pgid;
 		JobState state;
 		vector<Command> commands;
@@ -46,8 +44,12 @@ namespace gao
 
 	int get_front_job();
 
-	int pid2jobid(pid_t);
+	int pgid2jobid(pid_t);
 
-	int pid2index(pid_t);
+	int pgid2index(pid_t);
+
+	void list_jobs();
+
+	void print_job(Job&);
 }
 #endif
