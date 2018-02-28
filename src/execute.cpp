@@ -1,14 +1,15 @@
-#define _GNU_SOURCE
 #include<iostream>
 #include<sys/types.h>
+#include<sys/stat.h>
+#include<sys/wait.h>
 #include<errno.h>
 #include<unistd.h>
 #include<stdlib.h>
 #include<stdio.h>
 #include<cstring>
 #include<signal.h>
-#include<sys/stat.h>
 #include<fcntl.h>
+#include<vector>
 
 #include"execute.h"
 #include"job.h"
@@ -29,7 +30,7 @@ namespace gao
 		signal_mask(SIG_BLOCK, SIGCHLD);
 
 		pid_t pid;
-		if(!(pid = excute(job)))
+		if(!(pid = excute(new_job)))
 		{
 			signal_mask(SIG_UNBLOCK, SIGCHLD);
 			return;
@@ -52,7 +53,7 @@ namespace gao
 		if(job.ncmd == 1)
 		{
 			if(!build_in(&(job.cmd[0])))
-				return spawn_proc(STDIN_FILENO, STDOUT_FILENO, cmd, 0);
+				return spawn_proc(STDIN_FILENO, STDOUT_FILENO, &(job.cmd[0]), 0);
 			else
 				return 0;
 		}
@@ -70,7 +71,7 @@ namespace gao
 
 		if(!strncmp(cmd->argv[0], "jobs", 4))
 		{
-			int in = dup(STD_IN_FILENO);
+			int in = dup(STDIN_FILENO);
 			int out = dup(STDOUT_FILENO);
 
 			redirect(cmd);
@@ -133,10 +134,10 @@ namespace gao
 				}
 				else
 				{
-					file = strdupa(*(ptr + 2));
+					file = strdupa(ptr + 2);
 					*(ptr + 2) = '\0';
 					/* cmd >>file */
-					if(!strncmp(*buf, ">>"))
+					if(!strcmp(*buf, ">>"))
 						shift_n(buf, 1);
 					/* cmd>>file */
 					else
@@ -245,7 +246,7 @@ namespace gao
 			in = fd[0];
 		}
 
-		spawn_proc(in, STDOUT_FILENO, job.cmd[i], pgid);
+		spawn_proc(in, STDOUT_FILENO, &(job.cmd[i]), pgid);
 		return pgid;
 	}
 
@@ -294,6 +295,92 @@ namespace gao
 			}
 		}
 	}
-	void do_bgfg(Job&);
-	void wait_fg(pid_t pgid);
+	
+	void do_bgfg(Command* cmd)
+	{
+		if(cmd->argv[1] == NULL)
+		{
+			fprintf(stderr, "%s command requires PID OR %%JID argument\n", cmd->argv[0]);
+			return;
+		}
+
+		int jobindex = -2;
+
+		if(isdigit(*cmd->argv[1]))
+		{
+			if((jobindex = pid2index(atoi(cmd->argv[1]))) == -1)
+			{
+				fprintf(stderr, "[%d]:: No such process\n", atoi(cmd->argv[1]));
+				return;
+			}
+		}
+		else if(*cmd->argv[1] == '%')
+		{
+			if((jobindex = jid2index(atoi(cmd->argv[1] + 1))) == -1)
+			{
+				fprintf(stderr, "[%s]: No such job\n", cmd->argv[1]);
+				return;
+			}
+		}
+		else
+		{
+			fprintf(stderr, "%s: argument must be a PID or %%JID\n", cmd->argv[0]);
+			return;
+		}
+
+		if(!strcmp(cmd->argv[0], "fg"))
+		{
+			if(kill(-jobs[jobindex].pid, SIGCONT) < 0)
+				err_msg("kill");
+			jobs[jobindex].state = JobState::FRONTGROUND;
+			wait_fg(jobs[jobindex].pid);
+			return;
+		}
+		else
+		{
+			printf("[%d] (%ld)    %s\n", jobs[jobindex].jid, (long)jobs[jobindex].pid, jobs[jobindex].cmdline);
+			if(kill(-jobs[jobindex].pid, SIGCONT) < 0)
+				err_msg("kill");
+			jobs[jobindex].state = JobState::BACKGROUND;
+			return;
+		}
+		return;
+	}
+
+	void wait_fg(pid_t pgid)
+	{
+		int status, jobindex;
+		int saved_errno = errno;
+		pid_t pid;
+		signal(SIGCHLD, SIG_DFL);
+		signal_mask(SIG_UNBLOCK, SIGCHLD);
+
+		while((pid = waitpid(-pgid, &status, WUNTRACED)) > 0)
+		{
+			if(WIFSIGNALED(status))
+			{
+				fprintf(stderr, "Job [%d] (%ld) terminated by %s(%d)\n", pid2jid(pgid), (long)pgid, strsignal(WSTOPSIG(status)), WSTOPSIG(status));
+				jobs.erase(jobs.begin() + pid2index(pgid));
+				break;
+			}
+			else if(WIFSTOPPED(status))
+			{
+				fprintf(stderr, "Job [%d] (%ld) stopped by %s(%d)\n", pid2jid(pgid), (long)pgid, strsignal(WSTOPSIG(status)), WSTOPSIG(status));
+				jobs[pid2index(pgid)].state = JobState::STOPPED;
+				break;
+			}
+		}
+
+		if(pid == -1)
+		{
+			if(errno != ECHILD)
+				err_msg("waitpid");
+			else
+				jobs.erase(jobs.begin() + pid2index(pgid));
+		}
+
+		signal_set_handler(SIGCHLD, sigchld_handler);
+
+		errno = saved_errno;
+	}
 }

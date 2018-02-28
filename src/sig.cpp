@@ -40,15 +40,15 @@ namespace gao
 			pid_t pgid = getpgid(pid);
 			if(WIFSIGNALED(status))
 			{
-				cerr<<"Job "<<pgid2jobid(pid)<<" terminated by signal"<<strsignal(WTERMSIG(status))<<endl;
+				cerr<<"Job "<<pid2jid(pid)<<" terminated by signal"<<strsignal(WTERMSIG(status))<<endl;
 				kill(-pgid, SIGINT);
-				if(pgid2index(pgid) != -1)
-					jobs.erase(jobs.begin() + pgid2index(pgid));
+				if(pid2index(pgid) != -1)
+					jobs.erase(jobs.begin() + pid2index(pgid));
 			}
 			else if(WIFSTOPPED(status))
 			{
-				cout<<"Job "<<pgid2jobid(pgid)<<" stopped by signal"<<strsignal(WSTOPSIG(status))<<endl;
-				(*(jobs.begin() + pgid2index(pgid))).state = JobState::STOPPED;
+				cout<<"Job "<<pid2jid(pgid)<<" stopped by signal"<<strsignal(WSTOPSIG(status))<<endl;
+				(*(jobs.begin() + pid2index(pgid))).state = JobState::STOPPED;
 			}
 		}
 
@@ -62,23 +62,23 @@ namespace gao
 
 	void sigint_handler(int sig)
 	{
-		int currentjob = get_front_job();
+		int currentjob = get_front_job_index();
 		if(currentjob != -1)
-			kill(-(jobs[currentjob].pgid), SIGINT);
+			kill(-(jobs[currentjob].pid), SIGINT);
 	}
 
 	void sigquit_handler(int sig)
 	{
 		for(auto it = jobs.begin(); it != jobs.end(); it++)
-			kill(-it->pgid, SIGTERM);
+			kill(-it->pid, SIGTERM);
 		exit(1);
 	}
 
 	void sigtstp_handler(int sig)
 	{
-		int currentjob = get_front_job();
+		int currentjob = get_front_job_index();
 		if(currentjob != -1)
-			kill(-jobs[currentjob].pgid, SIGTSTP);
+			kill(-jobs[currentjob].pid, SIGTSTP);
 	}
 
 	void signal_mask(int how, int sig)

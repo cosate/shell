@@ -4,6 +4,7 @@
 #include<signal.h>
 #include<sys/types.h>
 #include<stdlib.h>
+#include<vector>
 #include"job.h"
 #include"sig.h"
 #include"err.h"
@@ -53,9 +54,6 @@ int main(int argc, char* argv[])
 	while(1)
 	{
 		cout<<host<<">>: "<<flush;
-		
-		if(s == "quit")
-			break;
 
 		switch(get_cmd(cmd, MAXCMDLINELENGTH))
 		{
@@ -70,6 +68,7 @@ int main(int argc, char* argv[])
 			{
 				just_do_it(cmd);
 				cout<<flush;
+				break;
 			}
 			default:
 			{

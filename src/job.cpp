@@ -4,16 +4,18 @@
 #include<cstring>
 #include"job.h"
 
-extern vector<gao::Job> jobs;
+extern std::vector<gao::Job> jobs;
 
 namespace gao
 {
+	int Job::next_jid = 1;
+	
 	void Job::parse_cmdline()
 	{
 		char* ptr = this->cmdline;
-		char* buf, delim;
+		char* buf, *delim;
 		int argc, i;
-		for(i = 0; i <= MAXCMDNUM && (buf = strsep(&ptr, '|')); i++)
+		for(i = 0; i <= MAXCMDNUM && (buf = strsep(&ptr, "|")); i++)
 		{
 			argc = 0;
 			while(1)
@@ -35,7 +37,7 @@ namespace gao
 			}
 		}
 
-		if(this->cmd[i - 1].argv[argc - 1] == '&')
+		if(*(this->cmd[i - 1].argv[argc - 1]) == '&')
 			this->BACKGROUND = true;
 		else if(this->cmd[i - 1].argv[argc - 1][strlen(this->cmd[i - 1].argv[argc - 1]) - 1] == '&')
 		{
@@ -45,31 +47,41 @@ namespace gao
 		this->ncmd = i;
 	}
 
-	int get_front_job()
+	int get_front_job_index()
 	{
 		for(int res = 0; res < jobs.size(); res++)
 		{
 			if(jobs[res].state == JobState::FRONTGROUND)
 				return res;
 		}
-		return -1;
+		return 0;
 	}
 
 	int pid2jid(pid_t pid)
 	{
 		for(int res = 0; res < jobs.size(); res++)
 		{
-			if(jobs[res].pgid == pid)
-				return jobs[res].jobid;
+			if(jobs[res].pid == pid)
+				return jobs[res].jid;
+		}
+		return 0;
+	}
+
+	int pid2index(pid_t pid)
+	{
+		for(int i = 0; i < jobs.size(); i++)
+		{
+			if(jobs[i].pid == pid)
+				return i;
 		}
 		return -1;
 	}
 
-	int pgid2index(pid_t pid)
+	int jid2index(int jid)
 	{
 		for(int i = 0; i < jobs.size(); i++)
 		{
-			if(jobs[i].pgid == pid)
+			if(jobs[i].jid == jid)
 				return i;
 		}
 		return -1;
@@ -88,8 +100,8 @@ namespace gao
 				printf("Stopped");
 			else
 				printf("Undefined");
-			print_job(*it);
+
+			printf("\t\t%s\n", it->cmdline);
 		}
-		printf("\t\t%s\n", it->cmdline);
 	}
 }

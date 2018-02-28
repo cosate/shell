@@ -3,6 +3,7 @@
 
 #include<sys/types.h>
 #include<stdlib.h>
+#include<cstring>
 
 #define MAXCMDLINELENGTH 1024
 #define MAXCMDNUM 20
@@ -18,7 +19,11 @@ namespace gao
 	{
 	public:
 		char* argv[MAXARGS];
-		Command() { memset(argv, (char*)NULL, MAXARGS); }
+		Command()
+		{
+			for(int i = 0; i < MAXARGS; i++)
+				argv[i] = NULL;
+		}
 	};
 
 	class Job
@@ -56,19 +61,19 @@ namespace gao
 		void parse_cmdline();
 	};
 
-	int Job::next_jid = 1;
-
 	inline void pass_whitespace(char*& cmd)
 	{
 		while(*cmd != '\0' && *cmd == ' ')
 			cmd++;
 	}
 
-	int get_front_job();
+	int get_front_job_index();
 
 	int pid2jid(pid_t);
 
 	int pid2index(pid_t);
+
+	int jid2index(int);
 
 	void list_jobs();
 }
