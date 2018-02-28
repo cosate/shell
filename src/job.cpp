@@ -1,16 +1,53 @@
 #include<sys/types.h>
 #include<vector>
 #include<stdio.h>
+#include<cstring>
 #include"job.h"
 
 extern vector<gao::Job> jobs;
 
 namespace gao
 {
+	void Job::parse_cmdline()
+	{
+		char* ptr = this->cmdline;
+		char* buf, delim;
+		int argc, i;
+		for(i = 0; i <= MAXCMDNUM && (buf = strsep(&ptr, '|')); i++)
+		{
+			argc = 0;
+			while(1)
+			{
+				pass_whitespace(buf);
+				delim = strchr(buf, ' ');
+				if(delim == NULL)
+				{
+					if(*buf)
+						this->cmd[i].argv[argc++] = buf;
+					break;
+				}
+				else
+				{
+					this->cmd[i].argv[argc++] = buf;
+					*delim = '\0';
+					buf = delim + 1;
+				}
+			}
+		}
+
+		if(this->cmd[i - 1].argv[argc - 1] == '&')
+			this->BACKGROUND = true;
+		else if(this->cmd[i - 1].argv[argc - 1][strlen(this->cmd[i - 1].argv[argc - 1]) - 1] == '&')
+		{
+			this->BACKGROUND = true;
+			this->cmd[i - 1].argv[argc - 1][strlen(this->cmd[i - 1].argv[argc - 1]) - 1] = '\0';
+		}
+		this->ncmd = i;
+	}
+
 	int get_front_job()
 	{
-		int res = 0;
-		for(; res < jobs.size(); res++)
+		for(int res = 0; res < jobs.size(); res++)
 		{
 			if(jobs[res].state == JobState::FRONTGROUND)
 				return res;
@@ -18,7 +55,7 @@ namespace gao
 		return -1;
 	}
 
-	int pgid2jobid(pid_t pid)
+	int pid2jid(pid_t pid)
 	{
 		for(int res = 0; res < jobs.size(); res++)
 		{
@@ -42,7 +79,7 @@ namespace gao
 	{
 		for(auto it = jobs.begin(); it != jobs.end(); it++)
 		{
-			printf("[%d] (%d) ", it->jobid, it->pgid);
+			printf("[%d] (%ld) ", it->jid, (long)it->pid);
 			if(it->state == JobState::FRONTGROUND)
 				printf("Frontground");
 			else if(it->state == JobState::BACKGROUND)
@@ -53,26 +90,6 @@ namespace gao
 				printf("Undefined");
 			print_job(*it);
 		}
-	}
-
-	void print_job(Job& job)
-	{
-		for(int i = 0; i < job.commands.size(); i++)
-		{
-			for(int j = 0; j < job.commands[i].argv.size(); j++)
-			{
-				printf("%s ", job.commands[i].argv[j]);
-			}
-			if(job.commands[i].infile != NULL)
-				printf("<%s ", job.commands[i].infile);
-			if(job.commands[i].outfile != NULL)
-			{
-				if(job.commands[i].outflag == OutFlag::APPEND)
-					printf(">>%s ", job.commands[i].outfile);
-				else
-					printf(">%s", job.commands[i].outfile);
-			}
-			printf("\n");
-		}
+		printf("\t\t%s\n", it->cmdline);
 	}
 }

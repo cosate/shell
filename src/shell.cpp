@@ -5,15 +5,40 @@
 #include<sys/types.h>
 #include<stdlib.h>
 #include"job.h"
-#include"parse.h"
 #include"sig.h"
-//#include"execute.h"
+#include"err.h"
+#include"execute.h"
 using namespace std;
 using namespace gao;
 
 vector<Job> jobs;
 
-int main()
+static int get_cmd(char* cmd, int max)
+{
+	char c;
+	int nread = 0;
+	while((c = getchar()) != EOF)
+	{
+		if(c == '\n' || c == ';')
+			break;
+		nread++;
+		if(nread > max)
+		{
+			err_msg("get_cmd");
+			return 0;
+		}
+		*cmd++ = c;
+	}
+	*cmd = '\0';
+
+	if(c == EOF && nread == 0)
+		return -1;
+	if(nread == 0)
+		return 0;
+	return 1;
+}
+
+int main(int argc, char* argv[])
 {
 	signal_set_handler(SIGINT, sigint_handler);
 	signal_set_handler(SIGCHLD, sigchld_handler);
@@ -22,26 +47,36 @@ int main()
 
 	char host[10];
 	gethostname(host, 10);
-	string s;
-	vector<Job> vec;
+
+	char cmd[MAXCMDLINELENGTH];
+	
 	while(1)
 	{
 		cout<<host<<">>: "<<flush;
-		getline(cin, s);
+		
 		if(s == "quit")
 			break;
-		vec.clear();
-		if(parse_jobs(s, vec))
+
+		switch(get_cmd(cmd, MAXCMDLINELENGTH))
 		{
-			for(int i = 0; i < vec.size(); i++)
+			case -1:
 			{
-				print_job(vec[i]);
-				cout<<"new job"<<endl<<endl<<endl;
+				raise(SIGQUIT);
+				break;
 			}
-			cout<<endl;
+			case 0:
+				continue;
+			case 1:
+			{
+				just_do_it(cmd);
+				cout<<flush;
+			}
+			default:
+			{
+				err_msg("unkown");
+				break;
+			}
 		}
-		else
-			cerr<<"wrong cmd"<<endl;
 	}
-	return 0;
+	exit(0);
 }

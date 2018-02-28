@@ -3,55 +3,73 @@
 
 #include<sys/types.h>
 #include<stdlib.h>
-#include<vector>
-using namespace std;
+
+#define MAXCMDLINELENGTH 1024
+#define MAXCMDNUM 20
+#define MAXARGS 128
+#define MAXJOB 16
+#define MAXJID (1<<16)
 
 namespace gao
 {
 	enum class JobState {UNDEFINED = 0, FRONTGROUND, BACKGROUND, STOPPED};
-	enum class OutFlag {APPEND = 0, REPLACE};
 
 	class Command
 	{
 	public:
-		vector<char*> argv;
-		int infd;
-		int outfd;
-		OutFlag outflag;
-		char* infile;
-		char* outfile;
-		Command()
-		{
-			infd = 0;
-			outfd = 0;
-			infile = NULL;
-			outfile = NULL;
-		}
+		char* argv[MAXARGS];
+		Command() { memset(argv, (char*)NULL, MAXARGS); }
 	};
 
 	class Job
 	{
 	public:
-		int jobid;
-		pid_t pgid;
+		bool BACKGROUND;
+
+		int jid;
+		pid_t pid;
 		JobState state;
-		vector<Command> commands;
-		Job()
+		int ncmd;
+
+		char cmdline[MAXCMDLINELENGTH];
+		Command cmd[MAXCMDNUM];
+
+		static int next_jid;
+		Job() : BACKGROUND(false), pid(0), state(JobState::UNDEFINED), ncmd(0)
 		{
-			jobid = 0;
-			pgid = 0;
-			state = JobState::UNDEFINED;
+			jid = next_jid++;
+
+			memset(cmdline, '\0', MAXCMDLINELENGTH);
+			for(int i = 0; i < MAXCMDNUM; i++)
+				cmd[i] = Command();
 		}
+
+		Job(char* cl) : BACKGROUND(false), pid(0), state(JobState::UNDEFINED), ncmd(0)
+		{
+			jid = next_jid++;
+
+			strcpy(this->cmdline, cl);
+			for(int i = 0; i < MAXCMDNUM; i++)
+				cmd[i] = Command();
+		}
+
+		void parse_cmdline();
 	};
+
+	int Job::next_jid = 1;
+
+	inline void pass_whitespace(char*& cmd)
+	{
+		while(*cmd != '\0' && *cmd == ' ')
+			cmd++;
+	}
 
 	int get_front_job();
 
-	int pgid2jobid(pid_t);
+	int pid2jid(pid_t);
 
-	int pgid2index(pid_t);
+	int pid2index(pid_t);
 
 	void list_jobs();
-
-	void print_job(Job&);
 }
 #endif

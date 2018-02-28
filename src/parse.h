@@ -6,11 +6,13 @@
 
 namespace gao
 {
-	void pass_whitespace(char*&);
-	int parse_jobs(string&, vector<Job>&);
-	int parse_job(char*&, vector<Job>&);
-	int parse_command(char*&, Job&);
-	int execute(Job&);
+	inline void pass_whitespace(char*& cmd)
+	{
+		while(*cmd != '\0' && *cmd == ' ')
+			cmd++;
+	}
+	
+	int parse_command(const char*);
 }
 
 #endif
